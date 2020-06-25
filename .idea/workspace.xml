@@ -56,6 +56,9 @@
       <workItem from="1592495311748" duration="631000" />
       <workItem from="1592579139025" duration="124709000" />
       <workItem from="1592986792372" duration="347000" />
+      <workItem from="1592987751307" duration="644000" />
+      <workItem from="1592997566114" duration="23747000" />
+      <workItem from="1593110884154" duration="629000" />
     </task>
     <servers />
   </component>
@@ -66,20 +69,16 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/com/company/graphs/PaintingGraph.java</url>
-          <line>811</line>
-          <option name="timeStamp" value="37" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/com/company/graphs/PaintingGraph.java</url>
-          <line>395</line>
-          <option name="timeStamp" value="39" />
+          <url>file://$PROJECT_DIR$/src/com/company/gui/PaintGraphField.java</url>
+          <line>204</line>
+          <option name="timeStamp" value="40" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
       <configuration name="Application">
         <watch expression="ver.this$0" />
+        <watch expression="this" />
       </configuration>
     </watches-manager>
   </component>

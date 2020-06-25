@@ -126,9 +126,9 @@ public class PaintingGraph<W extends TableData> {
         Integer name;
         Vertex vertex1; // инцидентная ребру вершина
         Vertex vertex2; // инцидентная ребру вершина
-        W weight; // вес ребра
+        TraceData weight; // вес ребра
 
-        Edge(Integer value, Vertex vertex1, Vertex vertex2, W weight) {
+        Edge(Integer value, Vertex vertex1, Vertex vertex2, TraceData weight) {
             this.vertex1 = vertex1;
             this.vertex2 = vertex2;
             this.weight = weight;
@@ -196,9 +196,25 @@ public class PaintingGraph<W extends TableData> {
 
     }
 
+    public Integer getMaxVertexName(){
+        Integer n = -1;
+        for(Integer name : vertex_list.keySet()){
+            if (name > n) n = name;
+        }
+        return n;
+    }
+
+    public Integer getMaxEdgesName(){
+        Integer n = -1;
+        for(Integer name : edges.keySet()){
+            if (name > n) n = name;
+        }
+        return n;
+    }
+
     public void updateDefaultNames(){
-        next_default_name = vertex_list.size();
-        next_default_nameEdge = edges.size();
+        next_default_name = getMaxVertexName() + 1;
+        next_default_nameEdge = getMaxEdgesName() + 1;
     }
 
     public void addVertex(Integer value, Point point) {
@@ -225,16 +241,16 @@ public class PaintingGraph<W extends TableData> {
      * @param vertex_name имя вершины, с которой устанавливаем связь
      * @param link_name   имя вершины, которую привязывем к <b>vertex_name</b>
      */
-    public void setLinkToVertex(Integer vertex_name, Integer link_name, W weight) {
-
+    public void setLinkToVertex(Integer vertex_name, Integer link_name, TraceData weight, Boolean flag) {
         if (!vertex_list.containsKey(vertex_name) || !vertex_list.containsKey(link_name)) {
             return;
         }
-        if (vertex_list.get(vertex_name).isHaveLink(link_name)){
-            JOptionPane.showMessageDialog(null, "Соединение между точками уже установлено.\nВыберите другие точки.");
-            return;
+        if (!flag) {
+            if (vertex_list.get(vertex_name).isHaveLink(link_name)) {
+                JOptionPane.showMessageDialog(null, "Соединение между точками уже установлено.\nВыберите другие точки.");
+                return;
+            }
         }
-
         if(getDistance(vertex_list.get(vertex_name), vertex_list.get(link_name)) >= DEFAULT_DISTANCE) {
             vertex_list.get(vertex_name).setLink(link_name);
             vertex_list.get(link_name).setLink(vertex_name);
@@ -299,7 +315,7 @@ public class PaintingGraph<W extends TableData> {
 
     public void selectEdge(Point point) {
         Edge e;
-        for (int i = 0; i< edges.size(); i++) {
+        for (Integer i : edges.keySet()) {
             e = edges.get(i);
             // проверяем, лежит ли точка на ОТРЕЗКЕ линии(заданной толщины) прямой, ограниченной центрами окружностей вершин
             if (Geometry.isLayToStrongCut(point, e.vertex1.getOvalCenter(), e.vertex2.getOvalCenter(), LINE_STROKE)) {
@@ -336,6 +352,7 @@ public class PaintingGraph<W extends TableData> {
      * @param vertex удаляемая вершина
      */
     private void deleteVertex(Vertex vertex) {
+        if (vertex == null) return;
         if (!vertex_list.containsKey(vertex.name)) return;
         //поиск и удаление ребер, которым инцидентна данная вершина
         Set<Integer> s = edges.keySet();
@@ -348,10 +365,12 @@ public class PaintingGraph<W extends TableData> {
                 edges.remove(index);
             }
         }
-
-        for (Integer ind : vertex.links){
-            Vertex v = vertex_list.get(ind);
-            v.deleteLink(vertex.name);
+        if (vertex.links != null)
+        {
+            for (Integer ind : vertex.links){
+                Vertex v = vertex_list.get(ind);
+                v.deleteLink(vertex.name);
+            }
         }
 
         vertex_list.remove(vertex.name); // удаление вершины из списка
@@ -454,7 +473,7 @@ public class PaintingGraph<W extends TableData> {
      *
      * @return вес выделленного ребра
      */
-    public W getSelectedEdgeWeight() {
+    public TraceData getSelectedEdgeWeight() {
         return selectedEdge == null ? null : selectedEdge.weight;
     }
 
@@ -526,10 +545,10 @@ public class PaintingGraph<W extends TableData> {
         return vertex.links.toArray(new String[0]);
     }
 
-    public HashMap<Integer, W> getWeightMapForVertex(Integer vertexName){
+    public HashMap<Integer, TraceData> getWeightMapForVertex(Integer vertexName){
         Vertex vertex = vertex_list.get(vertexName);
         if(vertex == null)return null;
-        HashMap<Integer, W> weightMap = new HashMap<>(vertex.links.size());
+        HashMap<Integer, TraceData> weightMap = new HashMap<>(vertex.links.size());
         Edge e;
         for (int i = 0; i < edges.size(); i++) {
             e = edges.get(i);
@@ -562,7 +581,7 @@ public class PaintingGraph<W extends TableData> {
         writer.write(System.lineSeparator());
 
         Edge e;
-        for (int i = 0; i < edges.size(); i++) {
+        for (Integer i : edges.keySet()) {
             e = edges.get(i);
             writer.write(e.vertex1.name+"-");
             writer.write(e.weight.toString());
@@ -610,7 +629,7 @@ public class PaintingGraph<W extends TableData> {
         //writer.write(System.lineSeparator());
 
         Edge e;
-        for (int i = 0; i < edges.size(); i++) {
+        for (Integer i : edges.keySet()) {
             e = edges.get(i);
             lst.add( e.vertex1.name+"-" + e.weight.toString() + "-" + e.vertex2.name );
            // writer.write(e.vertex1.name+"-");
@@ -665,6 +684,20 @@ public class PaintingGraph<W extends TableData> {
         }
     }
 
+    private void renameNameForSolution(Integer[] new_index, Integer index, Integer newName, Integer[] arr, Vertex v){
+        new_index[index] = newName;
+        if (vertex_list.containsKey(newName)){
+            int newi = newName;
+            for (int j = 0; j < arr.length; j++){
+                if (arr[j] == newName) {
+                    newi = j;
+                    break;
+                }
+            }
+            new_index[newi] = v.name;
+        }
+        renameVertex(v.name, newName);
+    }
 
 
     public void renameGraphForSolution(int from, int to){
@@ -683,56 +716,23 @@ public class PaintingGraph<W extends TableData> {
             else  v = vertex_list.get(arr[index]);
 
             if (arr[index] == from){
-                if (v.name != from){
-                    new_index[index] = 0;
-                    if (vertex_list.containsKey(0)){
-                        int newi = size - 1;
-                        for (int j = 0; j < arr.length; j++){
-                            if (arr[j] == 0) newi = j;
-                            break;
-                        }
-                        new_index[newi] = v.name;
-                    }
-                    renameVertex(v.name, 0);
-                }
-                //if (vertex_list.containsKey(0)) new_index[0] = v.name;
+                if (v.name != 0){
+                    renameNameForSolution(new_index, index, 0, arr, v);
 
+                }
                 new_vertex_list.put(0, v);
             }
             else {
                 if (arr[index] == to){
                     if (v.name !=  size - 1) {
-                        new_index[index] = size - 1;
-                        if (vertex_list.containsKey(size - 1)) {
-                            int newi = size - 1;
-                            for (int j = 0; j < arr.length; j++) {
-                                if (arr[j] == (size - 1)) newi = j;
-                                break;
-                            }
-                            new_index[newi] = v.name;
-                        }
-                        //if (vertex_list.containsKey(size - 1)) new_index[size - 1] = v.name;
-                        renameVertex(v.name, size - 1);
+                        renameNameForSolution(new_index, index, size - 1, arr, v);
                     }
-
-                    //v.setName(size - 1);
                     new_vertex_list.put(size - 1, v);
                 }
                 else{
                     if (v.name !=  n) {
-                        new_index[index] = n;
-                        if (vertex_list.containsKey(n)) {
-
-                            int newi = n;
-                            for (int j = 0; j < arr.length; j++) {
-                                if (arr[j] == n) newi = j;
-                                break;
-                            }
-                            new_index[newi] = v.name;
-                        }
-                        renameVertex(v.name, n);
+                        renameNameForSolution(new_index, index, n, arr, v);
                     }
-                    //v.setName(n);
                     new_vertex_list.put(n, v);
                     n++;
                 }
@@ -754,9 +754,9 @@ public class PaintingGraph<W extends TableData> {
 
     public boolean createGraphForSolution(int from, int to){
 
-        Boolean[] visited = new Boolean[vertex_list.size()];
+        Boolean[] visited = new Boolean[getMaxVertexName()+1];
         //List<List<Integer>> indOfWay = new ArrayList<>();
-        ArrayList<Integer>[] indOfWay = new ArrayList[vertex_list.size()];
+        ArrayList<Integer>[] indOfWay = new ArrayList[getMaxVertexName()+1];
         for(int i = 0; i < indOfWay.length; i++){
             indOfWay[i] = new ArrayList<>();
         }
@@ -766,7 +766,7 @@ public class PaintingGraph<W extends TableData> {
 
         queue.add(from);
         visited[from]= true;
-        Boolean[] way0 = new Boolean[vertex_list.size()];
+        Boolean[] way0 = new Boolean[getMaxVertexName()+1];
         way0[from] = true;
         ways.add(way0);
         indOfWay[from].add(0);
@@ -823,7 +823,7 @@ public class PaintingGraph<W extends TableData> {
                     deleteVertex(vertex);
                 } else flag = true;
             }
-
+            simplify(from, to);
             renameGraphForSolution(from, to);
             return true;
         }
@@ -871,7 +871,7 @@ public class PaintingGraph<W extends TableData> {
      }
 
      public Double solution(){
-        Double[][] matrix = doMatrix();
+        Double[][] matrix = createMatrixEquation ();
         int n = matrix.length;
         int m = matrix[0].length;
 
@@ -907,7 +907,7 @@ public class PaintingGraph<W extends TableData> {
         return ans;
      }
 
-     public Double[][] doMatrix(){
+     public Double[][] createMatrixEquation (){
 
          Double[][] equationUI = new Double[edges.size()][3];
          Double[][] equationI = new Double[vertex_list.size()][edges.size() + 1];
@@ -1012,5 +1012,34 @@ public class PaintingGraph<W extends TableData> {
         return  Math.sqrt((v1.x - v2.x)*(v1.x - v2.x)+(v1.y - v2.y)*(v1.y- v2.y));
      }
 
+     public void simplify(Integer from, Integer to){
+         Integer[] arr = vertex_list.keySet().toArray(new Integer[vertex_list.keySet().size()]);
+         Vertex ver;
+         for (Integer v :arr){
+             ver = vertex_list.get(v);
+             if (ver.name == from || ver.name == to) continue;
+             if (ver.links == null){
+                 deleteVertex(ver);
+                 continue;
+             }
+             if (ver.links.size() == 2){
+                 Edge e1 = findEdgeForVertex(ver.name, ver.links.get(0));
+                 Edge e2 = findEdgeForVertex(ver.name, ver.links.get(1));
+                 Integer w = e1.weight.getResistance() + e2.weight.getResistance();
+                 setLinkToVertex(ver.links.get(0), ver.links.get(1), new TraceData(w), true);
+                 deleteVertex(ver);
+             }
 
+         }
+     }
+
+     private Edge findEdgeForVertex(Integer v1, Integer v2){
+        Edge e = null;
+        for (Integer ed : edges.keySet()){
+            e = edges.get(ed);
+            if ((e.vertex1.name == v1 && e.vertex2.name == v2) || (e.vertex1.name == v2 && e.vertex2.name == v1))
+                return e;
+        }
+        return null;
+     }
 }

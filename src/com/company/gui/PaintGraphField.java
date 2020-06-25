@@ -49,7 +49,7 @@ public class PaintGraphField extends JPanel {
                     }
                     if (setLinks.size() == 2) { // Когда выделили 2е вершины, то добавляем им связь
                         if (isControl) {
-                            graph.setLinkToVertex(setLinks.pop(), setLinks.pop(), new TraceData(0));
+                            graph.setLinkToVertex(setLinks.pop(), setLinks.pop(), new TraceData(0), false);
                             releaseControl();
                         }
                         else  {
@@ -146,6 +146,7 @@ public class PaintGraphField extends JPanel {
         //graph = new_graph;
         repaint();
     }
+
 
     public void createDemo(){
         ArrayList<String> lst = new ArrayList<String>();

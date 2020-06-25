@@ -149,7 +149,7 @@ public class GraphReader {
                 graph.addVertex(Integer.parseInt(array[0]), new Point(Integer.parseInt(values[0]), Integer.parseInt(values[1])));
             }else {
                 String[] array = current.split("-");
-                graph.setLinkToVertex(Integer.parseInt(array[0]),Integer.parseInt(array[2]), new TraceData(Integer.parseInt(array[1])));
+                graph.setLinkToVertex(Integer.parseInt(array[0]),Integer.parseInt(array[2]), new TraceData(Integer.parseInt(array[1])), false);
             }
         }
         return graph;
@@ -175,9 +175,10 @@ public class GraphReader {
                 graph.addVertex(Integer.parseInt(array[0]), new Point(Integer.parseInt(values[0]), Integer.parseInt(values[1])));
             }else {
                 String[] array = current.split("-");
-                graph.setLinkToVertex(Integer.parseInt(array[0]),Integer.parseInt(array[2]), new TraceData(Integer.parseInt(array[1])));
+                graph.setLinkToVertex(Integer.parseInt(array[0]),Integer.parseInt(array[2]), new TraceData(Integer.parseInt(array[1])), false);
             }
         }
+        graph.updateDefaultNames();
         return graph;
     }
 
